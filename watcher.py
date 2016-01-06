@@ -51,23 +51,23 @@ def watcher(client,q):
                         s += "```\n"
                         s += r.text
                         s += "\n```"
-                watching[k] = hash
-                try:
-                    i = q.get_nowait()
-                    if i:
-                        watching[i[0]] = i[1]
-                except:
-                    pass
-                send_messages(chanlist, "Webpage has updates! "+k+"\n"+s)
-                print("ITS CHANGED: "+k)
-                watching[k] = hash
-                print(hash)
-                try:
-                    i = q.get_nowait()
-                    if i:
-                        watching[i[0]] = i[1]
-                except:
-                    pass
+                    watching[k] = hash
+                    try:
+                        i = q.get_nowait()
+                        if i:
+                            watching[i[0]] = i[1]
+                    except:
+                        pass
+                    send_messages(chanlist, "Webpage has updates! "+k+"\n"+s)
+                    print("ITS CHANGED: "+k)
+                    watching[k] = hash
+                    print(hash)
+        try:
+            i = q.get_nowait()
+            if i:
+                watching[i[0]] = i[1]
+        except:
+            pass
         f = open(admin_file, "w+")
         f.write(json.dumps(admins))
         f.close()
@@ -118,11 +118,10 @@ def on_ready():
     for i in list(client.get_all_channels()):
         if i.name == "bots":
             chanlist.append(i)
-            print(watcherchannel)
-            t = threading.Thread(target=watcher, args=(client,q))
-            t.daemon = True
-            t.start()
-            print('-----k-')
+    t = threading.Thread(target=watcher, args=(client,q))
+    t.daemon = True
+    t.start()
+    print('-----k-')
 
 
 q = queue.Queue()
