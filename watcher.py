@@ -15,6 +15,7 @@ open(hashes_file, "a").close()
 
 
 admins = []
+chanlist = []
 watching = {}
 
 user, password = sys.argv[1:]
@@ -28,8 +29,11 @@ while True:
     else:
         break
 
+def send_messages(chanlist, msg):
+    for chan in chanlist:
+        client.send_message(chan, msg)
 
-def watcher(client,channel,watcherchannel,q):
+def watcher(client,q):
     while True:
         print("Checking websites")
         for k,v in list(watching.items()):
@@ -45,6 +49,7 @@ def watcher(client,channel,watcherchannel,q):
                         s += "```\n"
                         s += r.text
                         s += "\n```"
+                    send_messages(chanlist, "Webpage has updates! "+k+"\n"+s)
                     client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
                     client.send_message(watcherchannel, "Webpage has updated! "+k+"\n"+s)
                     print("ITS CHANGED: "+k)
@@ -70,7 +75,7 @@ def on_message(message):
     msg = message.content.split(" ")
 
     if msg[0] == "!mods":
-        client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat") 
+        client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat")
 
     if msg[0] == ".help":
         s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Curret admins: " + " ".join(admins)
@@ -99,12 +104,12 @@ def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
-    channel = client.servers[0].get_default_channel()
+    chanlist.append(client.servers[0].get_default_channel())
     for i in list(client.get_all_channels()):
         if i.name == "watcher":
-            watcherchannel = i
+            chanlist.append(i)
     print(watcherchannel)
-    t = threading.Thread(target=watcher, args=(client,channel,watcherchannel, q))
+    t = threading.Thread(target=watcher, args=(client,q))
     t.daemon = True
     t.start()
     print('-----k-')
