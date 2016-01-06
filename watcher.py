@@ -18,25 +18,36 @@ watching = {}
 
 user, password = sys.argv[1:]
 
-client = discord.Client()
-client.login(user, password)
+while True:
+    try:
+        client = discord.Client()
+        client.login(user, password)
+    except:
+        print("Retry login")
+    else:
+        break
 
 
-def watcher(client,channel):
+def watcher(client,channel,watcherchannel):
     while True:
         print("Checking websites")
         for k,v in list(watching.items()):
-            r = requests.get(k)
-            hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
-            if hash != v:
-                s=""
-                s += "```\n"
-                s += r.text
-                s += "\n```"
-                client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
-                print("ITS CHANGED: "+k)
-                watching[k] = hash
-                print(hash)
+            try:
+                r = requests.get(k)
+            except:
+                pass
+            else:
+                hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
+                if hash != v:
+                    s=""
+                    s += "```\n"
+                    s += r.text
+                    s += "\n```"
+                    client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
+                    client.send_message(watcherchannel, "Webpage has updated! "+k+"\n"+s)
+                    print("ITS CHANGED: "+k)
+                    watching[k] = hash
+                    print(hash)
 
         f = open(admin_file, "w+")
         f.write(json.dumps(watching))
@@ -77,7 +88,11 @@ def on_ready():
     print(client.user.name)
     print(client.user.id)
     channel = client.servers[0].get_default_channel()
-    t = threading.Thread(target=watcher, args=(client,channel))
+    for i in list(client.get_all_channels()):
+        if i.name == "watcher":
+            watcherchannel = i
+    print(watcherchannel)
+    t = threading.Thread(target=watcher, args=(client,channel,watcherchannel))
     t.daemon = True
     t.start()
     print('-----k-')
