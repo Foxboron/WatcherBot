@@ -5,7 +5,7 @@ import time
 import hashlib
 import json
 import sys
-import Queue
+import queue
 
 
 admin_file = ".admins"
@@ -45,17 +45,17 @@ def watcher(client,channel,watcherchannel,q):
                         s += "```\n"
                         s += r.text
                         s += "\n```"
-                    client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
-                    client.send_message(watcherchannel, "Webpage has updated! "+k+"\n"+s)
-                    print("ITS CHANGED: "+k)
-                    watching[k] = hash
-                    print(hash)
-	try:
-            i = q.get_nowait()
-            if i:
-                watching[i[0]] = i[1]
-        except:
-            pass
+                        client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
+                        client.send_message(watcherchannel, "Webpage has updated! "+k+"\n"+s)
+                        print("ITS CHANGED: "+k)
+                        watching[k] = hash
+                        print(hash)
+                        try:
+                            i = q.get_nowait()
+                            if i:
+                                watching[i[0]] = i[1]
+                        except:
+                            pass
         f = open(admin_file, "w+")
         f.write(json.dumps(admins))
         f.close()
@@ -91,7 +91,7 @@ def on_message(message):
         client.send_message(message.channel, "Added webpage for watching: "+msg[1])
         r = requests.get(msg[1])
         hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
-	q.put_nowait((msg[1], hash))
+        q.put_nowait((msg[1], hash))
 
 
 @client.event
@@ -103,14 +103,14 @@ def on_ready():
     for i in list(client.get_all_channels()):
         if i.name == "watcher":
             watcherchannel = i
-    print(watcherchannel)
-    t = threading.Thread(target=watcher, args=(client,channel,watcherchannel, q))
-    t.daemon = True
-    t.start()
-    print('-----k-')
+            print(watcherchannel)
+            t = threading.Thread(target=watcher, args=(client,channel,watcherchannel, q))
+            t.daemon = True
+            t.start()
+            print('-----k-')
 
 
-q = Queue.Queue()
+q = queue.Queue()
 
 try:
     admin_info = json.loads(open(admin_file,"r+").read())
