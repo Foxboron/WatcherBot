@@ -50,8 +50,6 @@ def watcher(client,q):
                         s += r.text
                         s += "\n```"
                     send_messages(chanlist, "Webpage has updates! "+k+"\n"+s)
-                    client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
-                    client.send_message(watcherchannel, "Webpage has updated! "+k+"\n"+s)
                     print("ITS CHANGED: "+k)
                     watching[k] = hash
                     print(hash)
