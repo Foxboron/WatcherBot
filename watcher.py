@@ -18,7 +18,7 @@ admins = []
 chanlist = []
 watching = {}
 
-user, password = open("creds").read().split(" ")
+user, password = sys.argv[1:]
 
 
 while True:
@@ -27,7 +27,7 @@ while True:
         client.login(user, password)
     except Exception as e:
         print(e)
-        print("Retry login")
+        time.sleep(50)
     else:
         break
 
