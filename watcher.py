@@ -5,6 +5,7 @@ import time
 import hashlib
 import json
 import sys
+import Queue
 
 
 admin_file = ".admins"
@@ -28,7 +29,7 @@ while True:
         break
 
 
-def watcher(client,channel,watcherchannel):
+def watcher(client,channel,watcherchannel,q):
     while True:
         print("Checking websites")
         for k,v in list(watching.items()):
@@ -40,17 +41,23 @@ def watcher(client,channel,watcherchannel):
                 hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
                 if hash != v:
                     s=""
-                    s += "```\n"
-                    s += r.text
-                    s += "\n```"
+                    if k == "http://104.131.44.161/":
+                        s += "```\n"
+                        s += r.text
+                        s += "\n```"
                     client.send_message(channel, "Webpage has updated! "+k+"\n"+s)
                     client.send_message(watcherchannel, "Webpage has updated! "+k+"\n"+s)
                     print("ITS CHANGED: "+k)
                     watching[k] = hash
                     print(hash)
-
+	try:
+            i = q.get_nowait()
+            if i:
+                watching[i[0]] = i[1]
+        except:
+            pass
         f = open(admin_file, "w+")
-        f.write(json.dumps(watching))
+        f.write(json.dumps(admins))
         f.close()
         f = open(hashes_file, "w+")
         f.write(json.dumps(watching))
@@ -68,6 +75,11 @@ def on_message(message):
     if msg[0] == ".help":
         s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Curret admins: " + " ".join(admins)
         client.send_message(message.channel, s)
+
+    if msg[0] == ".source":
+        s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
+        client.send_message(message.channel, s)
+
     if message.author.name not in admins:
         return
 
@@ -77,9 +89,9 @@ def on_message(message):
 
     if msg[0] == ".add":
         client.send_message(message.channel, "Added webpage for watching: "+msg[1])
-        r = requests.get(k)
+        r = requests.get(msg[1])
         hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
-        watching[msg[1]] = hash
+	q.put_nowait((msg[1], hash))
 
 
 @client.event
@@ -92,11 +104,13 @@ def on_ready():
         if i.name == "watcher":
             watcherchannel = i
     print(watcherchannel)
-    t = threading.Thread(target=watcher, args=(client,channel,watcherchannel))
+    t = threading.Thread(target=watcher, args=(client,channel,watcherchannel, q))
     t.daemon = True
     t.start()
     print('-----k-')
 
+
+q = Queue.Queue()
 
 try:
     admin_info = json.loads(open(admin_file,"r+").read())
