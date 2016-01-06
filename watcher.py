@@ -18,13 +18,15 @@ admins = []
 chanlist = []
 watching = {}
 
-user, password = sys.argv[1:]
+user, password = open("creds").read().split(" ")
+
 
 while True:
     try:
         client = discord.Client()
         client.login(user, password)
-    except:
+    except Exception as e:
+        print(e)
         print("Retry login")
     else:
         break
