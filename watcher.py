@@ -4,9 +4,8 @@ import threading
 import time
 import hashlib
 import json
-import sys
 import queue
-
+import os
 
 admin_file = ".admins"
 open(admin_file, "a").close()
@@ -17,8 +16,11 @@ open(hashes_file, "a").close()
 admins = []
 chanlist = []
 watching = {}
+user = os.environ.get("DISCORD_USER", None)
+password = os.environ.get("DISCORD_PASSWORD", None)
 
-user, password = sys.argv[1:]
+if not user or not password:
+    raise Exception("Your Discord login details are missing inside the enviornment. Please set DISCORD_USER and DISCORD_PASSWORD before running this bot.")
 
 while True:
     try:

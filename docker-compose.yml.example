@@ -1,5 +1,5 @@
 watcher:
   build: .
   environment:
-    - USER=<something>
-    - PASSWD=<something>
+    - DISCORD_USER=<something>
+    - DISCORD_PASSWORD=<something>
