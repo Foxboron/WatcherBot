@@ -32,7 +32,10 @@ while True:
 
 def send_messages(chanlist, msg):
     for chan in chanlist:
-        client.send_message(chan, msg)
+        try:
+            client.send_message(chan, msg)
+        except discord.errors.HTTPException as e:
+            print(e)
 
 def watcher(client, q):
     while True:
