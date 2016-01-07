@@ -135,7 +135,10 @@ def on_message(message):
             continue
 
         if msg[0] == argument:
-            command["f"](message)
+            try:
+                command["f"](message)
+            except CommandError as e:
+                return client.send_message(message.channel, str(e))
 
 @client.event
 def on_ready():
@@ -180,11 +183,7 @@ def command_amiadmin(message):
 @cmd(".admin", admin=True)
 def command_admin(message):
     msg = message.content.split(" ")
-
-    try:
-        user = get_user(message.server, msg[1])
-    except CommandError as e:
-        return client.send_message(message.channel, str(e))
+    user = get_user(message.server, msg[1])
 
     if user.id not in admins:
         client.send_message(message.channel, "Added admin " + msg[1])
