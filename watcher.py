@@ -30,14 +30,53 @@ while True:
     else:
         break
 
+class CommandError(Exception):
+    pass
+
+def get_user(server, username):
+    users = []
+    username = username.strip()
+
+    if not username or username == "":
+        raise CommandError("Username field is missing.")
+
+    for member in server.members:
+        if member.name == username or member.id == username:
+            users.append(member)
+
+    print(users) # DEBUG PLEASE REMOVE ME BEFORE PUSH
+
+    if len(users) == 0:
+        raise CommandError("User '{user}' not found.".format(user=username))
+
+    if len(users) > 1:
+        extra = ""
+
+        for user in users:
+            extra += "'{username}' #{id} with roles {roles}\n".format(
+                username=user.name,
+                id=user.id,
+                roles=" ".join([role.name for role in user.roles])
+            )
+
+        raise CommandError("Multiple users with the username {username} found.\n{extra}".format(
+            username=username,
+            extra=extra
+        ))
+
+    return users[0]
+
 def send_messages(chanlist, msg):
     for chan in chanlist:
-        client.send_message(chan, msg)
+        try:
+            client.send_message(chan, msg)
+        except discord.errors.HTTPException as e:
+            print(e)
 
-def watcher(client,q):
+def watcher(client, q):
     while True:
         print("Checking websites")
-        for k,v in list(watching.items()):
+        for k, v in list(watching.items()):
             try:
                 r = requests.get(k)
             except:
@@ -45,7 +84,7 @@ def watcher(client,q):
             else:
                 hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
                 if hash != v:
-                    s=""
+                    s = ""
                     if k == "http://104.131.44.161/":
                         s += "```\n"
                         s += r.text
@@ -67,12 +106,13 @@ def watcher(client,q):
                 watching[i[0]] = i[1]
         except:
             pass
-        f = open(admin_file, "w+")
-        f.write(json.dumps(admins))
-        f.close()
-        f = open(hashes_file, "w+")
-        f.write(json.dumps(watching))
-        f.close()
+
+        # Save
+        with open(admin_file, "w+") as f:
+            json.dump(admins, f)
+
+        with open(hashes_file, "w+") as f:
+            json.dump(watching, f)
         time.sleep(10)
 
 
@@ -94,12 +134,20 @@ def on_message(message):
         s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
         client.send_message(message.channel, s)
 
-    if message.author.name not in admins:
+    if message.author.id not in admins:
         return
 
     if msg[0] == ".admin":
-        client.send_message(message.channel, "Added admin "+msg[1])
-        admins.append(msg[1])
+        try:
+            user = get_user(message.server, msg[1])
+        except CommandError as e:
+            return client.send_message(message.channel, str(e))
+
+        if user.id not in admins:
+            client.send_message(message.channel, "Added admin " + msg[1])
+            admins.append(user.id)
+        else:
+            client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
 
     if msg[0] == ".add":
         client.send_message(message.channel, "Added webpage for watching: "+msg[1])
@@ -117,7 +165,7 @@ def on_ready():
     for i in list(client.get_all_channels()):
         if i.name == "bots":
             chanlist.append(i)
-    t = threading.Thread(target=watcher, args=(client,q))
+    t = threading.Thread(target=watcher, args=(client, q))
     t.daemon = True
     t.start()
     print('-----k-')
@@ -126,26 +174,20 @@ def on_ready():
 q = queue.Queue()
 
 try:
-    admin_info = json.loads(open(admin_file,"r+").read())
+    admins = json.load(open(admin_file, "r+"))
 except:
-    admins = ["Foxboron", "nickforall", "Retsam19"]
-else:
-    admins = admin_info
+    admins = [
+        "107244504934830080",  # @nepeat
+        "66153853824802816",   # @Foxboron
+        "132638759215824897",  # nickforall
+        "134066166095151105"   # Retsam19
+    ]
 
 try:
-    hashes_info = json.loads(open(hashes_file,"r+").read())
+    watching = json.load(open(hashes_file, "r+"))
 except:
     # url => hash
     watching = {"http://104.131.44.161/": "d9efb9409d1c182e3f879740a08e93a9563c49ac5571b5a8818e8133"}
-else:
-    watching = hashes_info
 
 client.run()
-
-
-
-
-
-
-
 
