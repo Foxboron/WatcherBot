@@ -72,11 +72,11 @@ def watcher(client, q):
             pass
 
         # Save
-        with open("admin_file", "w+") as f:
-            json.dump(f, admins)
+        with open(admin_file, "w+") as f:
+            json.dump(admins, f)
 
-        with open(hashes_file) as f:
-            json.dump(f, watching)
+        with open(hashes_file, "w+") as f:
+            json.dump(watching, f)
         time.sleep(10)
 
 
