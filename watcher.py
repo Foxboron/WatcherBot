@@ -34,10 +34,10 @@ def send_messages(chanlist, msg):
     for chan in chanlist:
         client.send_message(chan, msg)
 
-def watcher(client,q):
+def watcher(client, q):
     while True:
         print("Checking websites")
-        for k,v in list(watching.items()):
+        for k, v in list(watching.items()):
             try:
                 r = requests.get(k)
             except:
@@ -45,7 +45,7 @@ def watcher(client,q):
             else:
                 hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
                 if hash != v:
-                    s=""
+                    s = ""
                     if k == "http://104.131.44.161/":
                         s += "```\n"
                         s += r.text
@@ -117,7 +117,7 @@ def on_ready():
     for i in list(client.get_all_channels()):
         if i.name == "bots":
             chanlist.append(i)
-    t = threading.Thread(target=watcher, args=(client,q))
+    t = threading.Thread(target=watcher, args=(client, q))
     t.daemon = True
     t.start()
     print('-----k-')
@@ -126,14 +126,14 @@ def on_ready():
 q = queue.Queue()
 
 try:
-    admin_info = json.loads(open(admin_file,"r+").read())
+    admin_info = json.loads(open(admin_file, "r+").read())
 except:
     admins = ["Foxboron", "nickforall", "Retsam19"]
 else:
     admins = admin_info
 
 try:
-    hashes_info = json.loads(open(hashes_file,"r+").read())
+    hashes_info = json.loads(open(hashes_file, "r+").read())
 except:
     # url => hash
     watching = {"http://104.131.44.161/": "d9efb9409d1c182e3f879740a08e93a9563c49ac5571b5a8818e8133"}
@@ -141,11 +141,4 @@ else:
     watching = hashes_info
 
 client.run()
-
-
-
-
-
-
-
 
