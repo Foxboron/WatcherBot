@@ -12,10 +12,12 @@ open(admin_file, "a").close()
 hashes_file = ".hashes"
 open(hashes_file, "a").close()
 
-
+q = queue.Queue()
 admins = []
 chanlist = []
 watching = {}
+_commands = {}
+
 user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
 
@@ -34,6 +36,14 @@ while True:
 
 class CommandError(Exception):
     pass
+
+def cmd(name, admin=False):
+    def _(fn):
+        _commands[name] = {
+            "f": fn,
+            "admin": admin
+        }
+    return _
 
 def get_user(server, username):
     users = []
@@ -115,46 +125,17 @@ def watcher(client, q):
             json.dump(watching, f)
         time.sleep(10)
 
-
+# Discord events
 @client.event
 def on_message(message):
     msg = message.content.split(" ")
 
-    if msg[0] == "!mods":
-        client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat")
+    for argument, command in _commands.items():
+        if message.author.id not in admins and command["admin"] is True:
+            continue
 
-    if msg[0] == "!bots":
-        client.send_message(message.channel, "Bot written in Python by Foxboron source: https://github.com/Foxboron/WatcherBot")
-
-    if msg[0] == ".help":
-        s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Curret admins: " + " ".join(admins)
-        client.send_message(message.channel, s)
-
-    if msg[0] == ".source":
-        s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
-        client.send_message(message.channel, s)
-
-    if message.author.id not in admins:
-        return
-
-    if msg[0] == ".admin":
-        try:
-            user = get_user(message.server, msg[1])
-        except CommandError as e:
-            return client.send_message(message.channel, str(e))
-
-        if user.id not in admins:
-            client.send_message(message.channel, "Added admin " + msg[1])
-            admins.append(user.id)
-        else:
-            client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
-
-    if msg[0] == ".add":
-        client.send_message(message.channel, "Added webpage for watching: "+msg[1])
-        r = requests.get(msg[1])
-        hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
-        q.put_nowait((msg[1], hash))
-
+        if msg[0] == argument:
+            command["f"](message)
 
 @client.event
 def on_ready():
@@ -170,9 +151,57 @@ def on_ready():
     t.start()
     print('-----k-')
 
+# Commands
+@cmd("!mods")
+def command_mods(message):
+    client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat")
 
-q = queue.Queue()
+@cmd("!bots")
+def command_bots(message):
+    client.send_message(message.channel, "Bot written in Python by Foxboron source: https://github.com/Foxboron/WatcherBot")
 
+@cmd(".help")
+def command_help(message):
+    s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Current admins: " + " ".join(admins)
+    client.send_message(message.channel, s)
+
+@cmd(".source")
+def command_source(message):
+    s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
+    client.send_message(message.channel, s)
+
+@cmd(".amiadmin")
+def command_amiadmin(message):
+    if message.author.id in admins:
+        client.send_message(message.channel, "Yes.")
+    else:
+        client.send_message(message.channel, "No.")
+
+@cmd(".admin", admin=True)
+def command_admin(message):
+    msg = message.content.split(" ")
+
+    try:
+        user = get_user(message.server, msg[1])
+    except CommandError as e:
+        return client.send_message(message.channel, str(e))
+
+    if user.id not in admins:
+        client.send_message(message.channel, "Added admin " + msg[1])
+        admins.append(user.id)
+    else:
+        client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
+
+@cmd(".add", admin=True)
+def command_add(message):
+    msg = message.content.split(" ")
+
+    client.send_message(message.channel, "Added webpage for watching: "+msg[1])
+    r = requests.get(msg[1])
+    hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
+    q.put_nowait((msg[1], hash))
+
+# Startup
 try:
     admins = json.load(open(admin_file, "r+"))
 except:
