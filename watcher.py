@@ -30,6 +30,42 @@ while True:
     else:
         break
 
+class CommandError(Exception):
+    pass
+
+def get_user(server, username):
+    users = []
+    username = username.strip()
+
+    if not username or username == "":
+        raise CommandError("Username field is missing.")
+
+    for member in server.members:
+        if member.name == username or member.id == username:
+            users.append(member)
+
+    print(users) # DEBUG PLEASE REMOVE ME BEFORE PUSH
+
+    if len(users) == 0:
+        raise CommandError("User '{user}' not found.".format(user=username))
+
+    if len(users) > 1:
+        extra = ""
+
+        for user in users:
+            extra += "'{username}' #{id} with roles {roles}\n".format(
+                username=user.name,
+                id=user.id,
+                roles=" ".join([role.name for role in user.roles])
+            )
+
+        raise CommandError("Multiple users with the username {username} found.\n{extra}".format(
+            username=username,
+            extra=extra
+        ))
+
+    return users[0]
+
 def send_messages(chanlist, msg):
     for chan in chanlist:
         try:
@@ -98,12 +134,20 @@ def on_message(message):
         s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
         client.send_message(message.channel, s)
 
-    if message.author.name not in admins:
+    if message.author.id not in admins:
         return
 
     if msg[0] == ".admin":
-        client.send_message(message.channel, "Added admin "+msg[1])
-        admins.append(msg[1])
+        try:
+            user = get_user(message.server, msg[1])
+        except CommandError as e:
+            return client.send_message(message.channel, str(e))
+
+        if user.id not in admins:
+            client.send_message(message.channel, "Added admin " + msg[1])
+            admins.append(user.id)
+        else:
+            client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
 
     if msg[0] == ".add":
         client.send_message(message.channel, "Added webpage for watching: "+msg[1])
@@ -132,7 +176,12 @@ q = queue.Queue()
 try:
     admins = json.load(open(admin_file, "r+"))
 except:
-    admins = ["Foxboron", "nickforall", "Retsam19"]
+    admins = [
+        "107244504934830080",  # @nepeat
+        "66153853824802816",   # @Foxboron
+        "132638759215824897",  # nickforall
+        "134066166095151105"   # Retsam19
+    ]
 
 try:
     watching = json.load(open(hashes_file, "r+"))
