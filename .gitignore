@@ -2,3 +2,4 @@
 *.hashes
 *.rope*
 *creds*
+env/
