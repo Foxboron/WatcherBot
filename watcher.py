@@ -22,7 +22,8 @@ user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
 
 if not user or not password:
-    raise Exception("Your Discord login details are missing inside the enviornment. Please set DISCORD_USER and DISCORD_PASSWORD before running this bot.")
+    raise Exception("Your Discord login details are missing inside the enviornment. " +
+                    "Please set DISCORD_USER and DISCORD_PASSWORD before running this bot.")
 
 while True:
     try:
@@ -34,8 +35,10 @@ while True:
     else:
         break
 
+
 class CommandError(Exception):
     pass
+
 
 def cmd(name, admin=False):
     def _(fn):
@@ -44,6 +47,7 @@ def cmd(name, admin=False):
             "admin": admin
         }
     return _
+
 
 def get_user(server, username):
     users = []
@@ -76,12 +80,14 @@ def get_user(server, username):
 
     return users[0]
 
+
 def send_messages(chanlist, msg):
     for chan in chanlist:
         try:
             client.send_message(chan, msg)
         except discord.errors.HTTPException as e:
             print(e)
+
 
 def watcher(client, q):
     while True:
@@ -106,8 +112,8 @@ def watcher(client, q):
                             watching[i[0]] = i[1]
                     except:
                         pass
-                    send_messages(chanlist, "Webpage has updates! "+k+"\n"+s)
-                    print("ITS CHANGED: "+k)
+                    send_messages(chanlist, "Webpage has updates! " + k + "\n" + s)
+                    print("ITS CHANGED: " + k)
                     watching[k] = hash
                     print(hash)
         try:
@@ -125,6 +131,7 @@ def watcher(client, q):
             json.dump(watching, f)
         time.sleep(10)
 
+
 # Discord events
 @client.event
 def on_message(message):
@@ -140,6 +147,7 @@ def on_message(message):
             except CommandError as e:
                 return client.send_message(message.channel, str(e))
 
+
 @client.event
 def on_ready():
     print('Logged in as')
@@ -154,24 +162,29 @@ def on_ready():
     t.start()
     print('-----k-')
 
+
 # Commands
 @cmd("!mods")
 def command_mods(message):
     client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat")
 
+
 @cmd("!bots")
 def command_bots(message):
     client.send_message(message.channel, "Bot written in Python by Foxboron source: https://github.com/Foxboron/WatcherBot")
+
 
 @cmd(".help")
 def command_help(message):
     s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Current admins: " + " ".join(admins)
     client.send_message(message.channel, s)
 
+
 @cmd(".source")
 def command_source(message):
     s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
     client.send_message(message.channel, s)
+
 
 @cmd(".amiadmin")
 def command_amiadmin(message):
@@ -179,6 +192,7 @@ def command_amiadmin(message):
         client.send_message(message.channel, "Yes.")
     else:
         client.send_message(message.channel, "No.")
+
 
 @cmd(".admin", admin=True)
 def command_admin(message):
@@ -191,11 +205,12 @@ def command_admin(message):
     else:
         client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
 
+
 @cmd(".add", admin=True)
 def command_add(message):
     msg = message.content.split(" ")
 
-    client.send_message(message.channel, "Added webpage for watching: "+msg[1])
+    client.send_message(message.channel, "Added webpage for watching: " + msg[1])
     r = requests.get(msg[1])
     hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
     q.put_nowait((msg[1], hash))
@@ -218,4 +233,3 @@ except:
     watching = {"http://104.131.44.161/": "d9efb9409d1c182e3f879740a08e93a9563c49ac5571b5a8818e8133"}
 
 client.run()
-
