@@ -34,8 +34,10 @@ while True:
     else:
         break
 
+
 class CommandError(Exception):
     pass
+
 
 def cmd(name, admin=False):
     def _(fn):
@@ -44,6 +46,7 @@ def cmd(name, admin=False):
             "admin": admin
         }
     return _
+
 
 def get_user(server, username):
     users = []
@@ -76,12 +79,14 @@ def get_user(server, username):
 
     return users[0]
 
+
 def send_messages(chanlist, msg):
     for chan in chanlist:
         try:
             client.send_message(chan, msg)
         except discord.errors.HTTPException as e:
             print(e)
+
 
 def watcher(client, q):
     while True:
@@ -125,6 +130,7 @@ def watcher(client, q):
             json.dump(watching, f)
         time.sleep(10)
 
+
 # Discord events
 @client.event
 def on_message(message):
@@ -140,6 +146,7 @@ def on_message(message):
             except CommandError as e:
                 return client.send_message(message.channel, str(e))
 
+
 @client.event
 def on_ready():
     print('Logged in as')
@@ -154,24 +161,29 @@ def on_ready():
     t.start()
     print('-----k-')
 
+
 # Commands
 @cmd("!mods")
 def command_mods(message):
     client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat")
 
+
 @cmd("!bots")
 def command_bots(message):
     client.send_message(message.channel, "Bot written in Python by Foxboron source: https://github.com/Foxboron/WatcherBot")
+
 
 @cmd(".help")
 def command_help(message):
     s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Current admins: " + " ".join(admins)
     client.send_message(message.channel, s)
 
+
 @cmd(".source")
 def command_source(message):
     s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
     client.send_message(message.channel, s)
+
 
 @cmd(".amiadmin")
 def command_amiadmin(message):
@@ -179,6 +191,7 @@ def command_amiadmin(message):
         client.send_message(message.channel, "Yes.")
     else:
         client.send_message(message.channel, "No.")
+
 
 @cmd(".admin", admin=True)
 def command_admin(message):
@@ -190,6 +203,7 @@ def command_admin(message):
         admins.append(user.id)
     else:
         client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
+
 
 @cmd(".add", admin=True)
 def command_add(message):
