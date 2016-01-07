@@ -67,12 +67,13 @@ def watcher(client, q):
                 watching[i[0]] = i[1]
         except:
             pass
-        f = open(admin_file, "w+")
-        f.write(json.dumps(admins))
-        f.close()
-        f = open(hashes_file, "w+")
-        f.write(json.dumps(watching))
-        f.close()
+
+        # Save
+        with open("admin_file", "w+") as f:
+            json.dump(f, admins)
+
+        with open(hashes_file) as f:
+            json.dump(f, watching)
         time.sleep(10)
 
 
@@ -126,19 +127,15 @@ def on_ready():
 q = queue.Queue()
 
 try:
-    admin_info = json.loads(open(admin_file, "r+").read())
+    admins = json.load(open(admin_file, "r+"))
 except:
     admins = ["Foxboron", "nickforall", "Retsam19"]
-else:
-    admins = admin_info
 
 try:
-    hashes_info = json.loads(open(hashes_file, "r+").read())
+    watching = json.load(open(hashes_file, "r+"))
 except:
     # url => hash
     watching = {"http://104.131.44.161/": "d9efb9409d1c182e3f879740a08e93a9563c49ac5571b5a8818e8133"}
-else:
-    watching = hashes_info
 
 client.run()
 
