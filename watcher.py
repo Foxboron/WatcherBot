@@ -20,7 +20,6 @@ watching = {}
 
 user, password = sys.argv[1:]
 
-
 while True:
     try:
         client = discord.Client()
@@ -141,11 +140,10 @@ except:
 else:
     watching = hashes_info
 
-while True:
-    try:
-        client.run()
-    except:
-        pass
+client.run()
+
+
+
 
 
 
