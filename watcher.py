@@ -44,8 +44,6 @@ def get_user(server, username):
         if member.name == username or member.id == username:
             users.append(member)
 
-    print(users) # DEBUG PLEASE REMOVE ME BEFORE PUSH
-
     if len(users) == 0:
         raise CommandError("User '{user}' not found.".format(user=username))
 
