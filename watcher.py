@@ -23,7 +23,8 @@ user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
 
 if not user or not password:
-    raise Exception("Your Discord login details are missing inside the enviornment. Please set DISCORD_USER and DISCORD_PASSWORD before running this bot.")
+    raise Exception("Your Discord login details are missing inside the enviornment. " +
+                    "Please set DISCORD_USER and DISCORD_PASSWORD before running this bot.")
 
 while True:
     try:
@@ -113,8 +114,8 @@ def watcher(client, q):
                             watching[i[0]] = i[1]
                     except:
                         pass
-                    send_messages(chanlist, "Webpage has updates! "+k+"\n"+s)
-                    print("ITS CHANGED: "+k)
+                    send_messages(chanlist, "Webpage has updates! " + k + "\n" + s)
+                    print("ITS CHANGED: " + k)
                     watching[k] = hash
                     print(hash)
         try:
@@ -225,7 +226,7 @@ def command_admin(message):
 def command_add(message):
     msg = message.content.split(" ")
 
-    client.send_message(message.channel, "Added webpage for watching: "+msg[1])
+    client.send_message(message.channel, "Added webpage for watching: " + msg[1])
     r = requests.get(msg[1])
     hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
     q.put_nowait((msg[1], hash))
@@ -248,4 +249,3 @@ except:
     watching = {"http://104.131.44.161/": "d9efb9409d1c182e3f879740a08e93a9563c49ac5571b5a8818e8133"}
 
 client.run()
-
