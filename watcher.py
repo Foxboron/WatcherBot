@@ -17,6 +17,7 @@ admins = []
 chanlist = []
 watching = {}
 _commands = {}
+wiki = "http://wiki.databutt.com/index.php"
 
 user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
@@ -39,11 +40,12 @@ class CommandError(Exception):
     pass
 
 
-def cmd(name, admin=False):
+def cmd(name, admin=False, help=""):
     def _(fn):
         _commands[name] = {
             "f": fn,
-            "admin": admin
+            "admin": admin,
+            "help": help
         }
     return _
 
@@ -163,29 +165,43 @@ def on_ready():
 
 
 # Commands
-@cmd("!mods")
+@cmd("!mods", help="Hilights mods")
 def command_mods(message):
     client.send_message(message.channel, "@MrDetonia @nickforall @kolpet @nepeat")
 
 
-@cmd("!bots")
+@cmd("!bots", help="Get info from all bots")
 def command_bots(message):
     client.send_message(message.channel, "Bot written in Python by Foxboron source: https://github.com/Foxboron/WatcherBot")
 
+@cmd("!wiki", help="Get a wiki page")
+def wiki_cmd(message):
+    msg = message.content.split(" ")
+    if len(msg) >= 2:
+        client.send_message(message.channel, wiki+"?title="+msg[1])
+    else:
+        client.send_message(message.channel, wiki+"?title=Main_Page")
 
-@cmd(".help")
+@cmd(".watch")
+def watching(message):
+    client.send_message(message.channel, str(list(watching.keys())))
+
+@cmd(".help", help="Get this help")
 def command_help(message):
-    s = "I'm a watcherbot! Tell an admin too add the webpage with .add.  Current admins: " + " ".join(admins)
+    s="```\n"
+    for k,v in _commands.items():
+        s+="{cmd}: {help}\n".format(cmd=k, help=v["help"])
+    s+="```"
     client.send_message(message.channel, s)
 
 
-@cmd(".source")
+@cmd(".source", help="Get source")
 def command_source(message):
     s = "O'mighty source: https://github.com/Foxboron/WatcherBot"
     client.send_message(message.channel, s)
 
 
-@cmd(".amiadmin")
+@cmd(".amiadmin", help="Are you a bot herder?")
 def command_amiadmin(message):
     if message.author.id in admins:
         client.send_message(message.channel, "Yes.")
@@ -193,7 +209,7 @@ def command_amiadmin(message):
         client.send_message(message.channel, "No.")
 
 
-@cmd(".admin", admin=True)
+@cmd(".admin", help="Add new admin. Admins only", admin=True)
 def command_admin(message):
     msg = message.content.split(" ")
     user = get_user(message.server, msg[1])
@@ -205,7 +221,7 @@ def command_admin(message):
         client.send_message(message.channel, "User {user} is already an admin!".format(user=msg[1]))
 
 
-@cmd(".add", admin=True)
+@cmd(".add", help="Add new webpage too watch. Admins only", admin=True)
 def command_add(message):
     msg = message.content.split(" ")
 
