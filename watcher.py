@@ -7,9 +7,11 @@ import json
 import queue
 import os
 
-admin_file = ".admins"
+
+
+admin_file = "/etc/configs/admins"
 open(admin_file, "a").close()
-hashes_file = ".hashes"
+hashes_file = "/etc/configs/hashes"
 open(hashes_file, "a").close()
 
 q = queue.Queue()
@@ -179,7 +181,7 @@ def command_bots(message):
 def wiki_cmd(message):
     msg = message.content.split(" ")
     if len(msg) >= 2:
-        client.send_message(message.channel, wiki+"?title="+msg[1])
+        client.send_message(message.channel, wiki+"?title="+"+".join(msg[1:]))
     else:
         client.send_message(message.channel, wiki+"?title=Main_Page")
 
@@ -246,6 +248,6 @@ try:
     watching = json.load(open(hashes_file, "r+"))
 except:
     # url => hash
-    watching = {"http://104.131.44.161/": "d9efb9409d1c182e3f879740a08e93a9563c49ac5571b5a8818e8133"}
+    watching = {"http://104.131.44.161/": "4fa759b49bad7a52c46f573df80ec2cb9ef11e9c1b39b072f0fdfd43"}
 
 client.run()

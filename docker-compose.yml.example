@@ -3,3 +3,5 @@ watcher:
   environment:
     - DISCORD_USER=<something>
     - DISCORD_PASSWORD=<something>
+  volumes:
+    - ~/configs:/etc/configs/:rw
