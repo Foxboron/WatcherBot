@@ -20,6 +20,7 @@ chanlist = []
 watching = {}
 _commands = {}
 wiki = "http://wiki.databutt.com/index.php"
+sleep_time = 30
 
 user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
@@ -123,7 +124,13 @@ def watcher(client, q):
         try:
             i = q.get_nowait()
             if i:
-                watching[i[0]] = i[1]
+                if i[0] == "rm":
+                    try:
+                        del watching[i[1]]
+                    except KeyError as e:
+                        pass
+                else:
+                    watching[i[0]] = i[1]
         except:
             pass
 
@@ -133,7 +140,7 @@ def watcher(client, q):
 
         with open(hashes_file, "w+") as f:
             json.dump(watching, f)
-        time.sleep(10)
+        time.sleep(sleep_time)
 
 
 # Discord events
@@ -175,7 +182,7 @@ def command_mods(message):
 
 @cmd("!bots", help="Get info from all bots")
 def command_bots(message):
-    client.send_message(message.channel, "Bot written in Python by Foxboron source: https://github.com/Foxboron/WatcherBot")
+    client.send_message(message.channel, "Bot written in Python by Foxboron. `.help` for more info.")
 
 @cmd("!wiki", help="Get a wiki page")
 def wiki_cmd(message):
@@ -185,7 +192,7 @@ def wiki_cmd(message):
     else:
         client.send_message(message.channel, wiki+"?title=Main_Page")
 
-@cmd(".watch")
+@cmd(".watch", help="Checked watched webpages")
 def watching(message):
     client.send_message(message.channel, str(list(watching.keys())))
 
@@ -232,6 +239,13 @@ def command_add(message):
     r = requests.get(msg[1])
     hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
     q.put_nowait((msg[1], hash))
+
+
+@cmd(".rm", help="Remove webpage too watch. Admins only", admin=True)
+def command_add(message):
+    msg = message.content.split(" ")
+    q.put_nowait(("rm", msg[1]))
+
 
 # Startup
 try:
