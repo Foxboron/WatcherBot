@@ -121,18 +121,21 @@ def watcher(client, q):
                     print("ITS CHANGED: " + k)
                     watching[k] = hash
                     print(hash)
-        try:
-            i = q.get_nowait()
-            if i:
-                if i[0] == "rm":
-                    try:
-                        del watching[i[1]]
-                    except KeyError as e:
-                        pass
-                else:
-                    watching[i[0]] = i[1]
-        except:
-            pass
+        while True:
+            try:
+                i = q.get_nowait()
+                if i:
+                    if i[0] == "rm":
+                        try:
+                            del watching[i[1]]
+                        except KeyError as e:
+                            pass
+                    if i == None:
+                        break
+                    else:
+                        watching[i[0]] = i[1]
+            except:
+                break
 
         # Save
         with open(admin_file, "w+") as f:
