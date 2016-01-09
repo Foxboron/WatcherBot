@@ -21,6 +21,7 @@ watching = {}
 _commands = {}
 wiki = "http://wiki.databutt.com/index.php"
 sleep_time = 30
+silence = False
 
 user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
@@ -87,6 +88,8 @@ def get_user(server, username):
 
 
 def send_messages(chanlist, msg):
+    if silence:
+        return
     for chan in chanlist:
         try:
             client.send_message(chan, msg)
@@ -245,10 +248,25 @@ def command_add(message):
 
 
 @cmd(".rm", help="Remove webpage too watch. Admins only", admin=True)
-def command_add(message):
+def command_rm(message):
     msg = message.content.split(" ")
     q.put_nowait(("rm", msg[1]))
 
+
+@cmd(".kill", help="Kill the bot. Emergency only. Admins only", admin=True)
+def command_kill(message):
+    import sys
+    sys.exit()
+
+
+@cmd(".mute", help="Mute bot. Admins only", admin=True)
+def command_mute(message):
+    silence = True
+
+
+@cmd(".unmute", help="Unmute bot. Admins only", admin=True)
+def command_unmute(message):
+    silence = False
 
 # Startup
 try:
