@@ -200,7 +200,11 @@ def wiki_cmd(message):
 
 @cmd(".watch", help="Checked watched webpages")
 def watching(message):
-    client.send_message(message.channel, str(list(watching.keys())))
+    s = "```\n"
+    for i in watching.keys():
+        s += i+"\n"
+    s += "```"
+    client.send_message(message.channel, s)
 
 @cmd(".help", help="Get this help")
 def command_help(message):
