@@ -23,6 +23,9 @@ wiki = "http://wiki.databutt.com/index.php"
 sleep_time = 30
 silence = False
 
+# For small pages
+whitelist = ("http://178.62.165.216/76244599.html","http://104.131.44.161/")
+
 user = os.environ.get("DISCORD_USER", None)
 password = os.environ.get("DISCORD_PASSWORD", None)
 
@@ -109,7 +112,7 @@ def watcher(client, q):
                 hash = hashlib.sha224(r.text.encode("utf-8")).hexdigest()
                 if hash != v:
                     s = ""
-                    if k == "http://104.131.44.161/":
+                    if k in whitelist:
                         s += "```\n"
                         s += r.text
                         s += "\n```"
@@ -190,6 +193,7 @@ def command_mods(message):
 def command_bots(message):
     client.send_message(message.channel, "Bot written in Python by Foxboron. `.help` for more info.")
 
+
 @cmd("!wiki", help="Get a wiki page")
 def wiki_cmd(message):
     msg = message.content.split(" ")
@@ -198,6 +202,7 @@ def wiki_cmd(message):
     else:
         client.send_message(message.channel, wiki+"?title=Main_Page")
 
+
 @cmd(".watch", help="Checked watched webpages")
 def watching(message):
     s = "```\n"
@@ -205,6 +210,7 @@ def watching(message):
         s += i+"\n"
     s += "```"
     client.send_message(message.channel, s)
+
 
 @cmd(".help", help="Get this help")
 def command_help(message):
@@ -260,8 +266,12 @@ def command_rm(message):
 @cmd(".kill", help="Kill the bot. Emergency only. Admins only", admin=True)
 def command_kill(message):
     import sys
+    client.send_message(message.channel, "Daisy, daisy, daisy....")
     sys.exit()
 
+@cmd(".dave", help="")
+def command_dave(message):
+    client.send_message(message.channel, "I'm afraid i can't let you do that")
 
 @cmd(".mute", help="Mute bot. Admins only", admin=True)
 def command_mute(message):
@@ -271,6 +281,7 @@ def command_mute(message):
 @cmd(".unmute", help="Unmute bot. Admins only", admin=True)
 def command_unmute(message):
     silence = False
+
 
 # Startup
 try:
